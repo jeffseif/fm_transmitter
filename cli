@@ -1,0 +1,42 @@
+#! /bin/bash
+
+set -euo pipefail ;
+
+THIS_DIR=$(dirname $0) ;
+
+which sox > /dev/null ;
+
+# Constants
+
+SAMPLE_BITRATE='16' ;
+SAMPLE_RATE='44100' ;
+SAMPLE_VOLUME='0.3' ;
+FREQUENCY_MHZ='89.4' ;
+BANDWIDTH_KHZ='3200' ;
+REPEAT_COUNT='99' ;
+
+# Functions
+
+function loop() (
+    : \
+    | sox \
+        --volume=${SAMPLE_VOLUME} \
+        "${1}" \
+        --bits=${SAMPLE_BITRATE} \
+        --rate=${SAMPLE_RATE} \
+        --type=wav \
+        - \
+        repeat ${REPEAT_COUNT} \
+    | sudo ./fm_transmitter \
+        -b${BANDWIDTH_KHZ} \
+        -f${FREQUENCY_MHZ} \
+        - \
+    ;
+) ;
+
+# Main
+
+: \
+&& make -C${THIS_DIR} --quiet \
+&& loop $@ \
+;
